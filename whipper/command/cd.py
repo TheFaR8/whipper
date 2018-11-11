@@ -22,7 +22,6 @@ import argparse
 import cdio
 import os
 import glob
-import sys
 import logging
 from whipper.command.basecommand import BaseCommand
 from whipper.common import (
@@ -89,7 +88,7 @@ class _CD(BaseCommand):
 
         # if the device is mounted (data session), unmount it
         self.device = self.options.device
-        sys.stdout.write('Checking device %s\n' % self.device)
+        print('Checking device %s' % self.device)
 
         utils.load_device(self.device)
         utils.unmount_device(self.device)
@@ -100,12 +99,12 @@ class _CD(BaseCommand):
 
         # already show us some info based on this
         self.program.getRipResult(self.ittoc.getCDDBDiscId())
-        sys.stdout.write("CDDB disc id: %s\n" % self.ittoc.getCDDBDiscId())
+        print("CDDB disc id: %s" % self.ittoc.getCDDBDiscId())
         self.mbdiscid = self.ittoc.getMusicBrainzDiscId()
-        sys.stdout.write("MusicBrainz disc id %s\n" % self.mbdiscid)
+        print("MusicBrainz disc id %s" % self.mbdiscid)
 
-        sys.stdout.write("MusicBrainz lookup URL %s\n" %
-                         self.ittoc.getMusicBrainzSubmitURL())
+        print("MusicBrainz lookup URL %s" %
+              self.ittoc.getMusicBrainzSubmitURL())
 
         self.program.metadata = (
             self.program.getMusicBrainz(self.ittoc, self.mbdiscid,
@@ -119,7 +118,7 @@ class _CD(BaseCommand):
             cddbid = self.ittoc.getCDDBValues()
             cddbmd = self.program.getCDDB(cddbid)
             if cddbmd:
-                sys.stdout.write('FreeDB identifies disc as %s\n' % cddbmd)
+                print('FreeDB identifies disc as %s' % cddbmd)
 
             # also used by rip cd info
             if not getattr(self.options, 'unknown', False):
@@ -225,8 +224,7 @@ Log files will log the path to tracks relative to this directory.
         if info:
             try:
                 default_offset = config.Config().getReadOffset(*info)
-                sys.stdout.write("Using configured read offset %d\n" %
-                                 default_offset)
+                print("Using configured read offset %d" % default_offset)
             except KeyError:
                 pass
 
@@ -329,8 +327,8 @@ Log files will log the path to tracks relative to this directory.
                 logger.critical(msg)
                 raise RuntimeError(msg)
             else:
-                sys.stdout.write("output directory %s already exists\n" %
-                                 dirname.encode('utf-8'))
+                logger.info("output directory %s already exists" %
+                            dirname.encode('utf-8'))
         else:
             print("creating output directory %s" % dirname.encode('utf-8'))
             os.makedirs(dirname)
@@ -373,11 +371,11 @@ Log files will log the path to tracks relative to this directory.
                     logger.debug('previous result %r, expected %r' % (
                         trackResult.filename, path))
 
-                sys.stdout.write('Verifying track %d of %d: %s\n' % (
-                    number, len(self.itable.tracks),
-                    os.path.basename(path).encode('utf-8')))
+                print('Verifying track %d of %d: %s' % (
+                      number, len(self.itable.tracks),
+                      os.path.basename(path).encode('utf-8')))
                 if not self.program.verifyTrack(self.runner, trackResult):
-                    sys.stdout.write('Verification failed, reripping...\n')
+                    print('Verification failed, reripping...')
                     os.unlink(path)
 
             if not os.path.exists(path):
@@ -391,9 +389,9 @@ Log files will log the path to tracks relative to this directory.
                     tries += 1
                     if tries > 1:
                         extra = " (try %d)" % tries
-                    sys.stdout.write('Ripping track %d of %d%s: %s\n' % (
-                        number, len(self.itable.tracks), extra,
-                        os.path.basename(path).encode('utf-8')))
+                    print('Ripping track %d of %d%s: %s' % (
+                          number, len(self.itable.tracks), extra,
+                          os.path.basename(path).encode('utf-8')))
                     try:
                         logger.debug('ripIfNotRipped: track %d, try %d',
                                      number, tries)
@@ -419,17 +417,14 @@ Log files will log the path to tracks relative to this directory.
                         "track can't be ripped. "
                         "Rip attempts number is equal to 'MAX_TRIES'")
                 if trackResult.testcrc == trackResult.copycrc:
-                    sys.stdout.write('CRCs match for track %d\n' % number)
+                    print('CRCs match for track %d' % number)
                 else:
                     raise RuntimeError(
-                        "CRCs did not match for track %d\n" % number
+                        "CRCs did not match for track %d" % number
                     )
 
-                sys.stdout.write(
-                    'Peak level: {}\n'.format(trackResult.peak))
-
-                sys.stdout.write(
-                    'Rip quality: {:.2%}\n'.format(trackResult.quality))
+                print('Peak level: {}'.format(trackResult.peak))
+                print('Rip quality: {:.2%}'.format(trackResult.quality))
 
             # overlay this rip onto the Table
             if number == 0:
@@ -444,8 +439,7 @@ Log files will log the path to tracks relative to this directory.
                     logger.debug('Unlinking %r', trackResult.filename)
                     os.unlink(trackResult.filename)
                     trackResult.filename = None
-                    sys.stdout.write(
-                        'HTOA discarded, contains digital silence\n')
+                    print('HTOA discarded, contains digital silence')
                 else:
                     self.itable.setFile(1, 0, trackResult.filename,
                                         self.ittoc.getTrackStart(1), number)
