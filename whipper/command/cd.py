@@ -84,8 +84,7 @@ class _CD(BaseCommand):
     def do(self):
         self.config = config.Config()
         self.program = program.Program(self.config,
-                                       record=self.options.record,
-                                       stdout=sys.stdout)
+                                       record=self.options.record)
         self.runner = task.SyncRunner()
 
         # if the device is mounted (data session), unmount it
